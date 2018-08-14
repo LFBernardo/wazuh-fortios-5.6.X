@@ -1,0 +1,131 @@
+<decoder name="fortigate-firewall-v5.6">
+    <prematch>\.*date=\S+ time=\S+ devname="\.+" devid="FG\w+" logid="\d+"</prematch>
+    <type>syslog</type>
+</decoder>
+
+<!--
+<185>date=2018-08-03 time=11:01:53 devname="XXXX-XX-XX-XX-00" devid="FGXXXXXXXXXXXXXXX" logid="0419016384" type="utm" subtype="ips" eventtype="signature" level="alert" vd="xxxx-xx-xx" eventtime=1533286913 severity="alert" srcip=10.10.10.10 srccountry="United States" dstip=11.11.11.11 srcintf="INT_XXX" srcintfrole="undefined" dstintf="port20" dstintfrole="undefined" sessionid=1645663560 action="detected" proto=6 service="SSL" policyid=516 attack="SSL.Anonymous.Ciphers.Negotiation" srcport=19653 dstport=7971 direction="outgoing" attackid=43544 profile="default" ref="http://www.fortinet.com/ids/VID43544" incidentserialno=1601510840 msg="applications3: SSL.Anonymous.Ciphers.Negotiation,"
+-->
+<decoder name="fortigate-firewall-v5.6-utm-ips">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type="utm" subtype="ips"</prematch>
+    <regex offset="after_prematch">\.* severity="(\S+)" srcip=(\S+) \.* dstip=(\S+) \.*action="(\S+)" proto=\d+ service="\.+" policyid=\d+ attack="\.*" srcport=(\d+) dstport=(\d+) direction="\w+" attackid=\d+ profile="\w+" ref="\.*" incidentserialno=\.+\smsg="(\.*),"</regex>
+    <order>status,srcip,dstip,action,srcport,dstport,extra_data</order>
+</decoder>
+
+
+<!--
+<190>date=2018-08-03 time=11:01:33 devname="XXXX-XX-XX-XXX-XX" devid="FGXXXXXXXXXXXXXXX" logid="0100032006" type="event" subtype="system" level="information" vd="xxxx-xx-xx" eventtime=1533286893 logdesc="Super admin entered VDOM" user="xxxxxx" ui="ssh(10.10.10.10)" action="vdom-switch" reason="none" msg="User xxxxxx has entered the virtual domain xxxx-xx-xx"
+-->
+
+<decoder name="fortigate-firewall-v5.6-event-system-information">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type="event" subtype="system" level="information"</prematch>
+    <regex offset="after_parent">user="(\S+)" ui="\p*\w+\((\S+)\)\p*" \.*action="(\.+)"</regex>
+    <order>srcuser,srcip,action</order>
+</decoder>
+
+<!--
+date=2018-07-30 time=13:41:14 devname="XXXX-XXXX-XXXX" devid="FGXXXXXXXXXXXXXX" logid="0100044546" type="event" subtype="system" level="information" vd="XXXX" eventtime=1532950874 logdesc="Attribute configured" user="XXXXXX" ui="GUI(10.10.10.10)" action="Edit" cfgtid=2885471 cfgpath="log.syslogd.setting" cfgattr="status[enable->disable]" msg="Edit log.syslogd.setting "
+-->
+
+<decoder name="fortigate-firewall-v5.6-event-system-information">
+    <parent>fortigate-firewall-v5.6</parent>
+    <regex offset="after_regex">cfgtid=(\d+) \.*cfgattr="(\.*)" msg="(\.*) "</regex>
+    <order>id,url,extra_data</order>
+</decoder>
+
+
+<!--
+***********************************************************************************************************************************************************************
+The following decoder will not necessarily match a rule because the structure of the alerts have changed (more specifically the subtype). This will require significantly more work as it will require a separate decoder withhout regex parent
+***********************************************************************************************************************************************************************
+-->
+
+<!--
+date=2018-07-30 time=13:41:13 devname="XXXX-XXXX-XXXX" devid="FGXXXXXXXXXXXXXX" logid="0102043039" type="event" subtype="user" level="notice" vd="XXXX" eventtime=1532950873 logdesc="Auth logon" srcip="10.10.10.10" user="XXXXX" group="N/A" action="auth-logon" status="logon" msg="User XXXXX added to auth logon"
+-->
+
+<!--
+The following rule will not match because the structure of the alerts have changed. This will require significantly more work as it will require a separate decoder name
+-->
+
+<decoder name="fortigate-firewall-v5.6-event-user">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type="event" subtype="user" level="\.*"</prematch>
+    <regex offset="after_parent">\.*status="(\w+)" \.*msg="(\.*)"</regex>
+    <order>status,extra_data</order>
+</decoder>
+
+<!--
+date=2018-07-30 time=13:39:30 devname="XXXX-XXXX-XXXX" devid="FGXXXXXXXXXXXXXX" logid="0317013312" type="utm" subtype="webfilter" eventtype="ftgd_allow" level="notice" vd="XXXX" eventtime=1532950770 policyid=28 sessionid=147995665 user="XXXXXXXX" group="XXXXXXXXXXXXXXXXXXXXXXXXXXXX" srcip=10.10.10.10 srcport=61885 srcintf="port15" srcintfrole="lan" dstip=11.11.11.11 dstport=80 dstintf="XXXXXXXX" dstintfrole="wan" proto=6 service="HTTP" hostname="pagead2.googlesyndication.com" profile="Limited_Internet_Access_Web_Filter" action="passthrough" reqtype="referral" url="/activeview?avi=BqDlkrfheW47TKJOi-gb-t4ioDwDOz73Y6gIAABABOAHIAQngAgDgBAGgBiHSCAUIgGEQAQ&cid=CAASFeRoLjtDWrKqjHVyskPYmmm4TBajpg&adk=2851723097&t" referralurl="http://tpc.googlesyndication.com/safeframe/1-0-29/html/container.html" sentbyte=1894 rcvdbyte=494 direction="outgoing" msg="URL belongs to an allowed category in policy" method="domain" cat=17 catdesc="Advertising"
+
+date=2018-07-30 time=13:41:15 devname="XXXX-XXXX-XXXX" devid="FGXXXXXXXXXXXXXX" logid="0316013056" type="utm" subtype="webfilter" eventtype="ftgd_blk" level="warning" vd="XXXX" eventtime=1532950875 policyid=25 sessionid=148006525 srcip=10.10.10.10 srcport=65243 srcintf="port15" srcintfrole="lan" dstip=11.11.11.11 dstport=443 dstintf="XXXXXXXXX" dstintfrole="wan" proto=6 service="HTTPS" hostname="bag.itunes.apple.com" profile="Vendors_and_Mobile_Web_Filter" action="blocked" reqtype="direct" url="/" sentbyte=241 rcvdbyte=0 direction="outgoing" msg="URL belongs to a denied category in policy" method="domain" cat=25 catdesc="Streaming Media and Download" crscore=30 crlevel="high"
+-->
+
+<decoder name="fortigate-firewall-v5.6-utm-webfilter">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type="utm" subtype="webfilter"</prematch>
+    <regex offset="after_parent">\.*level="(\S+)" \.*srcip=(\S+) srcport=(\d+) \.*dstip=(\S+) dstport=(\d+) dstintf="\.*" dstintfrole="\.*" proto=\d+ service="\.*" hostname="(\.+)" \.* action="(\w+)"</regex>
+    <order>status,srcip,srcport,dstip,dstport,url,action</order>
+</decoder>
+
+<!--
+date=2018-08-13 time=16:32:28 devname="XXXXXX-XX-XX-XXX-XX" devid="FGXXXXXXXXXXXXXX" logid="0000000013" type="traffic" subtype="forward" level="notice" vd="XXXX-XX-XX" eventtime=1534170748 srcip=10.10.10.10 srcport=34863 srcintf="port20" srcintfrole="undefined" dstip=11.11.11.11 dstport=443 dstintf="XXXXXXX" dstintfrole="undefined" poluuid="3bc4f9b2-9774-51e6-8684-e04f0402dc1d" sessionid=2749972558 proto=6 action="close" policyid=437 policytype="policy" service="HTTPS" dstcountry="XXXXXXXXXXXX" srccountry="Reserved" trandisp="snat" transip=12.12.12.12 transport=34863 duration=5 sentbyte=3589 rcvdbyte=34643 sentpkt=21 rcvdpkt=33 appcat="unscanned"
+
+<189>date=2018-08-13 time=16:35:49 devname="XXXXXX-XX-XX-XXX-XX" devid="FGXXXXXXXXXXXXXX" logid="0000000013" type="traffic" subtype="forward" level="notice" vd="XXXX-XX-XX" eventtime=1534170949 srcip=10.10.10.10 srcport=60227 srcintf="XXX_XXX-XX" srcintfrole="undefined" dstip=11.11.11.11 dstport=447 dstintf="XXX_XXX" dstintfrole="undefined" sessionid=2750184235 proto=6 action="deny" policyid=0 policytype="policy" service="tcp/447" dstcountry="Russian Federation" srccountry="Reserved" trandisp="noop" duration=0 sentbyte=0 rcvdbyte=0 sentpkt=0 appcat="unscanned" crscore=30 craction=131072 crlevel="high"
+-->
+<decoder name="fortigate-firewall-v5.6-traffic">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type="traffic"</prematch>
+    <regex>\.*srcip=(\S+) srcport=(\d+) \.*dstip=(\S+) dstport=(\d+) \.*appcat="(\.+)"</regex>
+    <order>srcip,srcport,dstip,dstport,protocol</order>
+</decoder>
+
+
+<!-- ****************************************************************above this line has been reviewed***************************************************************** -->
+<!-- ****************************************************************************************************************************************************************** -->
+<!-- New rule **** Reconfigured but cannot test, no long source****-->
+<decoder name="fortigate-firewall-v5.6-anomaly">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type=anomaly</prematch>
+    <regex offset="after_parent">severity=("\w+") srcip=(\S+) dstip=(\S+) srcintf="\S+" sessionid=\S+ action=("\w+") proto=\d+ service=("\S+") count=\d+ (attack)="(\.+)"</regex>
+    <order>status, srcip, dstip, action, protocol, id, extra_data</order>
+</decoder>
+
+<decoder name="fortigate-firewall-v5.6-event-system-alert-fields1">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type="event" subtype="system" level="alert" vd="\S+" logdesc="\.+"</prematch>
+    <regex offset="after_prematch">user="(\S+)" ui=\w+\((\S+)\) action=(\S+) status=(\S+) reason="\.+" msg="(\.+)"$</regex>
+    <order>user,srcip,action,status,extra_data</order>
+</decoder>
+
+<decoder name="fortigate-firewall-v5.6-event-system-alert-fields2">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type=event subtype=system level=alert vd="\S+" logdesc="\.+" user=</prematch>
+    <regex offset="after_prematch">"(\.+)" ui=\w+\((\S+)\) msg="(\.+)"</regex>
+    <order>user,srcip,extra_data</order>
+</decoder>
+
+<decoder name="fortigate-firewall-v5.6-event-system-alert-fields3">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type=event subtype=system level=alert vd="\S+" logdesc="\.+" ui=</prematch>
+    <regex offset="after_prematch">(\S+) action=(\S+) status=(\S+) reason=\S+ msg="(\.+)"</regex>
+    <order>srcip,action,status,extra_data</order>
+</decoder>
+
+<decoder name="fortigate-firewall-v5.6-event-vpn-fields1">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type=event subtype=vpn level=\S+ vd="\.+" logdesc="\.+" msg="\.+" action=</prematch>
+    <regex>logdesc="(\.+)" msg=\.+ action=(\.*) remip=(\S+) locip=(\S+) \.+ status=(\S+)</regex>
+    <order>extra_data,action,dstip,srcip,status</order>
+</decoder>
+
+<decoder name="fortigate-firewall-v5.6-event-vpn-fields2">
+    <parent>fortigate-firewall-v5.6</parent>
+    <prematch offset="after_parent">type=event subtype=vpn level=\S+ vd="\.+" logdesc="\.+" action=</prematch>
+    <regex>logdesc="(\.+)" action="(\.*)" tunneltype="(\.*)" tunnelid=\S+ remip=(\S+) tunnelip=(\S+) user="(\.+)" group=</regex>
+    <order>extra_data,action,status,dstip,srcip,srcuser</order>
+</decoder>
+
+
